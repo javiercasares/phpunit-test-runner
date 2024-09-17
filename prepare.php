@@ -22,7 +22,7 @@ check_required_env();
  * These variables are used to configure SSH connections, file paths, and
  * executable commands needed for setting up the test environment.
  */
-$WPT_LABEL          = trim( getenv( 'WPT_LABEL' ) ) ? : 'default';
+$WPT_LABEL          = trim( getenv( 'WPT_ENV_NAME' ) ) ? : 'unknown';
 $WPT_PREPARE_DIR    = trim( getenv( 'WPT_PREPARE_DIR' ) );
 $WPT_SSH_CONNECT    = trim( getenv( 'WPT_SSH_CONNECT' ) );
 $WPT_SSH_OPTIONS    = trim( getenv( 'WPT_SSH_OPTIONS' ) ) ? : '-o StrictHostKeyChecking=no';
@@ -84,9 +84,9 @@ if( $WPT_COMMITS ) {
 	$commits_array = json_decode( $commits, true );
 	unset( $commits );
 	foreach ( $commits_array as $commit ) {
-		
+
 		$WPT_COMMIT[] = $commit['sha'];
-		
+
 		unset( $commit );
 	}
 	unset( $commits_array );
@@ -94,11 +94,11 @@ if( $WPT_COMMITS ) {
 }
 
 if( count( $WPT_COMMIT ) ) {
-	
+
 	if( file_exists( __DIR__ . '/commits.json' ) ) {
-		
+
 		$c_array = json_decode( file_get_contents( __DIR__ . '/commits.json' ), true );
-		
+
 		if( isset( $c_array['testing_commit'] ) ) {
 			$testing_commit = $c_array['testing_commit'];
 		} else {
@@ -140,10 +140,10 @@ if( count( $WPT_COMMIT ) ) {
 			if (!in_array($commithash, $pending_commits) && !in_array($commithash, $executed_commits)) {
 
 				if( ! count( $pending_commits ) ) {
-				
+
 					array_unshift($pending_commits, $commithash);
 				} else {
-					
+
 					array_push($pending_commits, $commithash);
 				}
 
@@ -156,20 +156,20 @@ if( count( $WPT_COMMIT ) ) {
 		unset( $executed_commits, $pending_commits, $testing_commit );
 
 		$c_json = json_encode( $c );
-		
+
 		file_put_contents( __DIR__ . '/commits.json', $c_json );
-		
+
 		unset( $c, $c_json );
 
 
 	} else {
-		
+
 		$c = array( 'executed_commits' => array(), 'pending_commits' => $WPT_COMMIT, 'testing_commit' => $testing_commit );
 
 		$c_json = json_encode( $c );
-		
+
 		file_put_contents( __DIR__ . '/commits.json', $c_json );
-		
+
 		unset( $c, $c_json );
 
 	}
@@ -193,7 +193,7 @@ if ( '' !== $WPT_PHP_EXECUTABLE_MULTI ) {
 
 		unset( $php_multi_version );
 	}
-	
+
 	unset( $php_multi_versions );
 }
 
@@ -258,7 +258,7 @@ if( ! $WPT_CERTIFICATE_VALIDATION ) {
  * It then collects various pieces of system information including PHP version, loaded PHP modules,
  * MySQL version, operating system details, and versions of key utilities like cURL and OpenSSL.
  * This information is collected in an array and written to a JSON file in the log directory.
- * Additionally, if running from the command line during a WordPress installation process, 
+ * Additionally, if running from the command line during a WordPress installation process,
  * it outputs the PHP version and executable path.
  */
 $system_logger = <<<EOT
@@ -276,7 +276,7 @@ if( extension_loaded( 'imagick' ) ) {
 	\$imagick_info = Imagick::queryFormats();
 }
 \$env = array(
-	'label'					 => '{$WPT_LABEL}',
+	'label'					 => '{$WPT_ENV_NAME}',
 	'php_version'    => phpversion(),
 	'php_modules'    => array(),
 	'gd_info'        => \$gd_info,
@@ -390,11 +390,11 @@ if( count( $WPT_PHP_EXECUTABLE_MULTI_ARRAY ) ) {
 
 			$commit_sha = null;
 			if( file_exists( __DIR__ . '/commits.json' ) ) {
-		
+
 				$c_array = json_decode( file_get_contents( __DIR__ . '/commits.json' ), true );
-				
+
 				if( isset( $c_array['testing_commit'] ) && count( $c_array['testing_commit'] ) ) {
-					
+
 					$commit_sha = $c_array['testing_commit'][0];
 
 				} else {
@@ -406,13 +406,13 @@ if( count( $WPT_PHP_EXECUTABLE_MULTI_ARRAY ) ) {
 				}
 
 				$c_json = json_encode( $c_array );
-		
+
 				file_put_contents( __DIR__ . '/commits.json', $c_json );
 
 			}
-			
+
 			if( ! is_null( $commit_sha ) ) {
-				
+
 				perform_operations( array(
 
 					'cd ' . escapeshellarg( $WPT_PREPARE_DIR_MULTI ) . ' && git checkout ' . $commit_sha
@@ -420,7 +420,7 @@ if( count( $WPT_PHP_EXECUTABLE_MULTI_ARRAY ) ) {
 				) );
 
 			}
-				
+
 		}
 
 		perform_operations( array(
@@ -441,7 +441,7 @@ if( count( $WPT_PHP_EXECUTABLE_MULTI_ARRAY ) ) {
 
 		/**
 		 * Reads the contents of the WordPress test configuration sample file.
-		 * This file contains template placeholders that need to be replaced with actual values 
+		 * This file contains template placeholders that need to be replaced with actual values
 		 * from environment variables to configure the WordPress test environment.
 		 */
 
@@ -484,7 +484,7 @@ if( count( $WPT_PHP_EXECUTABLE_MULTI_ARRAY ) ) {
 		$php_version_cmd = $php_multi['bin'] . " -r \"print PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION;\"";
 
 		/**
-		 * If an SSH connection string is provided, the command to determine the PHP version is modified 
+		 * If an SSH connection string is provided, the command to determine the PHP version is modified
 		 * to execute remotely over SSH. This is required if the test environment is not the local machine.
 		 */
 		if ( ! empty( $WPT_SSH_CONNECT ) ) {
@@ -600,11 +600,11 @@ if( count( $WPT_PHP_EXECUTABLE_MULTI_ARRAY ) ) {
 
 		$commit_sha = null;
 		if( file_exists( __DIR__ . '/commits.json' ) ) {
-	
+
 			$c_array = json_decode( file_get_contents( __DIR__ . '/commits.json' ), true );
-			
+
 			if( isset( $c_array['testing_commit'] ) && count( $c_array['testing_commit'] ) ) {
-				
+
 				$commit_sha = $c_array['testing_commit'][0];
 
 			} else {
@@ -616,13 +616,13 @@ if( count( $WPT_PHP_EXECUTABLE_MULTI_ARRAY ) ) {
 			}
 
 			$c_json = json_encode( $c_array );
-	
+
 			file_put_contents( __DIR__ . '/commits.json', $c_json );
 
 		}
-		
+
 		if( ! is_null( $commit_sha ) ) {
-			
+
 			perform_operations( array(
 
 				'cd ' . escapeshellarg( $WPT_PREPARE_DIR ) . ' && git checkout ' . $commit_sha,
@@ -630,7 +630,7 @@ if( count( $WPT_PHP_EXECUTABLE_MULTI_ARRAY ) ) {
 			) );
 
 		}
-			
+
 	}
 
 	perform_operations( array(
@@ -651,7 +651,7 @@ if( count( $WPT_PHP_EXECUTABLE_MULTI_ARRAY ) ) {
 
 	/**
 	 * Reads the contents of the WordPress test configuration sample file.
-	 * This file contains template placeholders that need to be replaced with actual values 
+	 * This file contains template placeholders that need to be replaced with actual values
 	 * from environment variables to configure the WordPress test environment.
 	 */
 
@@ -691,7 +691,7 @@ if( count( $WPT_PHP_EXECUTABLE_MULTI_ARRAY ) ) {
 	$php_version_cmd = $WPT_PHP_EXECUTABLE . " -r \"print PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION;\"";
 
 	/**
-	 * If an SSH connection string is provided, the command to determine the PHP version is modified 
+	 * If an SSH connection string is provided, the command to determine the PHP version is modified
 	 * to execute remotely over SSH. This is required if the test environment is not the local machine.
 	 */
 	if ( ! empty( $WPT_SSH_CONNECT ) ) {
